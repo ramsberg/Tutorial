@@ -51,10 +51,7 @@ class PlayField:
         self.cover_line = "  "
         for column in range(self.columns):
             self.column_line = self.column_line+str(self.columnnumbers[column])+" "
-#        for column in range(self.columns):
-#            self.cover_line = self.cover_line+"--"
         print(self.column_line)
-#        print(self.cover_line)
         for row in range(self.rows):
             current_row= self.rowletters[row]+"|"
             for column in range(self.columns):
@@ -65,13 +62,42 @@ class PlayField:
                 if column != self.columns:
                     current_row = current_row + "|"
             print(current_row)
-#        print(self.cover_line)
+
+    def get_adjacent_opponent_tiles(self, player, coord_list):
+        r, c = coord_list
+        r1 = [[r-1,c-1],[r-1,c],[r-1,c+1]]
+        r2 = [[r,c-1],[r,c+1]]
+        r3 = [[r+1,c-1],[r+1,c],[r+1,c+1]]
+        adjacent_tiles = r1+r2+r3
+        opponent_tiles = []
+        for eval_tile in adjacent_tiles:
+            if self.playfield[eval_tile[0]][eval_tile[1]]: # There is a marker on the tile
+                if self.playfield[eval_tile[0]][eval_tile[1]].color != player.color: # its an opponent marker.
+                    opponent_tiles.append(eval_tile)
+        print("Opponent tiles: ",opponent_tiles)
+        return opponent_tiles
+
+    def valid_placement(self, player, coord_list):
+        valid_tile = False
+        row, column = coord_list
+        if not self.playfield[row][column]: # No marker on placement tile
+            adjacent_tile_coords = self.get_adjacent_opponent_tiles(player,coord_list)
+            if adjacent_tile_coords:
+                valid_tile = True
+            else:
+                valid_tile = False
+            # list all adjacent tiles that of opposite player color, if any, go ahead
+                # loop over and follow the direction of each adjacent opponent-tile to see if you find an own marker,
+                # if you do, set valid move = True
+
+        return valid_tile
+
 
     def place_marker(self, player, coord_list):
         player.brick_counter = player.brick_counter - 1
-        row = self.rowletters.index(coord_list[0])
-        column = self.columnnumbers.index(coord_list[1])
-        if not self.playfield[row][column]:
+        row = int(self.rowletters.index(coord_list[0]))
+        column = int(self.columnnumbers.index(coord_list[1]))
+        if self.valid_placement(player, [row,column]):
             self.playfield[row][column] = Bricka(player.color)
             return(1)
         else:
@@ -101,7 +127,7 @@ def main():
     while 1:
         game.playfield.draw()
         move = input("{}'s move:".format(game.players[game.turn].name))
-        valid_move = game.playfield.place_marker( game.players[game.turn], [str(move[0]),str(move[1])] )
+        valid_move = game.playfield.place_marker(game.players[game.turn], [str(move[0]),str(move[1])])
         if valid_move:
             game.change_turn()
 
