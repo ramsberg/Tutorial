@@ -126,15 +126,20 @@ class Othello:
 
 def main():
     game = Othello()
+    game_over = False
     while 1:
         game.playfield.draw()
         move = input("{}'s move:".format(game.players[game.turn].name))
         valid_move = game.playfield.place_marker(game.players[game.turn], [str(move[0]),str(move[1])])
         if valid_move:
             game.change_turn()
-        print("{}'s tiles left: {}. \n{}'s tiles left: {}.".format(game.players[game.turn].name, game.players[game.turn].brick_counter,
-                                                                   game.players[1 - game.turn].name,game.players[1 - game.turn].brick_counter))
-
+        print("{}'s tiles left: {}. \n{}'s tiles left: {}.".format(game.players[game.turn].name,
+                                                                   game.players[game.turn].brick_counter,
+                                                                   game.players[1 - game.turn].name,
+                                                                   game.players[1 - game.turn].brick_counter))
+        if game_over:
+            break
+    print("Game Over")
 
 if __name__ == "__main__":
     main()
