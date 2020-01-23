@@ -1,6 +1,5 @@
 
-
-class Bricka:
+class Marker:
     def __init__(self, color=None):
         self.colors_dict = {'Black': chr(9675), 'White': chr(9679)}
         if color and color in self.colors_dict.keys():
@@ -17,7 +16,6 @@ class Bricka:
         if self.color == 'White':
             self.color = 'Black'
 
-
 class Player:
     def __init__(self, name, color):
         self.name = name
@@ -33,18 +31,15 @@ class PlayField:
         self.rowletters = ['a','b','c','d','e','f','g','h']
         self.columnnumbers = ['1','2','3','4','5','6','7','8']
         self.create()
-        self.setup()
-
-    def setup(self):
-        self.playfield[3][3] = Bricka("White")
-        self.playfield[3][4] = Bricka("Black")
-        self.playfield[4][3] = Bricka("Black")
-        self.playfield[4][4] = Bricka("White")
 
     def create(self):
         self.playfield = []
         for row in range(self.rows):
             self.playfield.append([None] * self.columns)
+        self.playfield[3][3] = Marker("White")
+        self.playfield[3][4] = Marker("Black")
+        self.playfield[4][3] = Marker("Black")
+        self.playfield[4][4] = Marker("White")
 
     def draw(self):
         self.column_line = "  "
@@ -69,12 +64,18 @@ class PlayField:
         r2 = [[r,c-1],[r,c+1]]
         r3 = [[r+1,c-1],[r+1,c],[r+1,c+1]]
         adjacent_tiles = r1+r2+r3
+        # remove eval_tiles outside of playfield
+        valid_adjacent_tiles = []
+        for tile in adjacent_tiles:
+            if -1 not in tile and 8 not in tile: # If tile is outside of playfield, don't use it.
+                #print("DEBUG: Valid tile:",tile)
+                valid_adjacent_tiles.append(tile)
         opponent_tiles = []
-        for eval_tile in adjacent_tiles:
+        for eval_tile in valid_adjacent_tiles:
             if self.playfield[eval_tile[0]][eval_tile[1]]: # There is a marker on the tile
                 if self.playfield[eval_tile[0]][eval_tile[1]].color != player.color: # its an opponent marker.
                     opponent_tiles.append(eval_tile)
-        print("Opponent tiles: ",opponent_tiles)
+        #print("DEBUG: Opponent tiles: ",opponent_tiles)
         return opponent_tiles
 
     def valid_placement(self, player, coord_list):
@@ -89,21 +90,22 @@ class PlayField:
             # list all adjacent tiles that of opposite player color, if any, go ahead
                 # loop over and follow the direction of each adjacent opponent-tile to see if you find an own marker,
                 # if you do, set valid move = True
-
         return valid_tile
 
-
     def place_marker(self, player, coord_list):
-        player.brick_counter = player.brick_counter - 1
-        row = int(self.rowletters.index(coord_list[0]))
-        column = int(self.columnnumbers.index(coord_list[1]))
-        if self.valid_placement(player, [row,column]):
-            self.playfield[row][column] = Bricka(player.color)
-            return(1)
+        if coord_list[0] in self.rowletters and coord_list[1] in self.columnnumbers:
+            row = int(self.rowletters.index(coord_list[0]))
+            column = int(self.columnnumbers.index(coord_list[1]))
+            if self.valid_placement(player, [row,column]):
+                self.playfield[row][column] = Marker(player.color)
+                player.brick_counter = player.brick_counter - 1
+                return(1)
+            else:
+                print("Invalid move!")
+                return(0)
         else:
             print("Invalid move!")
-            return(0)
-
+            return (0)
 
 class Othello:
     def __init__(self):
@@ -130,6 +132,8 @@ def main():
         valid_move = game.playfield.place_marker(game.players[game.turn], [str(move[0]),str(move[1])])
         if valid_move:
             game.change_turn()
+        print("{}'s tiles left: {}. \n{}'s tiles left: {}.".format(game.players[game.turn].name, game.players[game.turn].brick_counter,
+                                                                   game.players[1 - game.turn].name,game.players[1 - game.turn].brick_counter))
 
 
 if __name__ == "__main__":
