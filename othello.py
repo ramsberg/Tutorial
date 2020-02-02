@@ -106,9 +106,6 @@ def main():
             game.change_turn()
 
 
-
-
-
 if __name__ == "__main__":
     main()
 
